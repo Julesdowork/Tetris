@@ -4,11 +4,10 @@ using UnityEngine;
 
 public class Block : MonoBehaviour
 {
-    const int width = 30;
-    const int height = 28;
-    RectTransform rectTransform;
+    const float width = 30;
+    const float height = 28;
 
-    public int Width
+    public float Width
     {
         get
         {
@@ -16,7 +15,7 @@ public class Block : MonoBehaviour
         }
     }
 
-    public int Height
+    public float Height
     {
         get
         {
@@ -27,17 +26,20 @@ public class Block : MonoBehaviour
     // Use this for initialization
     void Start ()
     {
-        rectTransform = GetComponent<RectTransform>();
-        Debug.Log("Transform Position: " + rectTransform.position);
 	}
 	
 	// Update is called once per frame
-	void Update () {
-		
+	void Update()
+    {
+		if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            MoveDown();
+        }
 	}
 
     void MoveDown()
     {
-
+        float newY = transform.position.y - 0.45f;
+        transform.position = new Vector3(transform.position.x, newY, 0);
     }
 }
