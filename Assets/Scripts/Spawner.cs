@@ -10,11 +10,6 @@ public class Spawner : MonoBehaviour
         // Spawn initial group
         SpawnNext();
 	}
-	
-	void Update()
-	{
-		
-	}
 
     public void SpawnNext()
     {
