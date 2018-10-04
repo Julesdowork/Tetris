@@ -4,8 +4,14 @@ using UnityEngine;
 public class Group : MonoBehaviour
 {
     float lastFall = 0;     // time since last gravity tick
+    Spawner spawner;
 
-	void Start()
+    void Awake()
+    {
+        spawner = FindObjectOfType<Spawner>();
+    }
+
+    void Start()
 	{
 		// Default position not valid? Then it's game over
         if (!IsValidGridPosition())
@@ -49,7 +55,7 @@ public class Group : MonoBehaviour
                 transform.position += new Vector3(-1, 0, 0);
             }
         }
-        // Rotate
+        // Rotate Left
         else if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             transform.Rotate(0, 0, -90);
@@ -60,7 +66,31 @@ public class Group : MonoBehaviour
             }
             else
             {
-                transform.Rotate(0, 0, 90);
+                if (transform.position.x > 5f)
+                    transform.position += new Vector3(-1f, 0, 0);
+                else
+                    transform.position += new Vector3(1f, 0, 0);
+
+                UpdateGrid();
+            }
+        }
+        // Rotate Right
+        else if (Input.GetKeyDown(KeyCode.Z))
+        {
+            transform.Rotate(0, 0, 90);
+
+            if (IsValidGridPosition())
+            {
+                UpdateGrid();
+            }
+            else
+            {
+                if (transform.position.x > 5f)
+                    transform.position += new Vector3(-1f, 0, 0);
+                else
+                    transform.position += new Vector3(1f, 0, 0);
+
+                UpdateGrid();
             }
         }
         // Fall
@@ -80,13 +110,18 @@ public class Group : MonoBehaviour
                 GameGrid.DeleteFullRows();
 
                 // Spawn next group
-                FindObjectOfType<Spawner>().SpawnNext();
+                spawner.SpawnNext();
 
                 // Disable script
                 enabled = false;
             }
 
             lastFall = Time.time;
+        }
+        // Hard Drop
+        else if (Input.GetKeyDown(KeyCode.Space))
+        {
+            HardFall();
         }
     }
 
@@ -130,5 +165,20 @@ public class Group : MonoBehaviour
             Vector2 roundedVector = GameGrid.RoundVector2(child.position);
             GameGrid.grid[(int)roundedVector.x, (int)roundedVector.y] = child;
         }
+    }
+
+    void HardFall()
+    {
+        while (IsValidGridPosition())
+        {
+            UpdateGrid();
+            transform.position += new Vector3(0, -1f, 0);
+        }
+
+        transform.position += new Vector3(0, 1f, 0);
+        GameGrid.DeleteFullRows();
+        spawner.SpawnNext();
+        enabled = false;
+        lastFall = Time.time;
     }
 }

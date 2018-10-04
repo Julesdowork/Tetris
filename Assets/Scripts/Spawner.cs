@@ -1,22 +1,28 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Spawner : MonoBehaviour
 {
     public GameObject[] groups;
 
-	void Start()
+    Next next;
+
+    void Awake()
+    {
+        next = FindObjectOfType<Next>();
+    }
+
+    void Start()
 	{
-        // Spawn initial group
         SpawnNext();
 	}
 
     public void SpawnNext()
     {
-        // Random index
-        int i = Random.Range(0, groups.Length);
+        //// Random index
+        //int i = Random.Range(0, groups.Length);
 
-        // Spawn group at current location
-        Instantiate(groups[i], transform.position, Quaternion.identity);
+        // Spawn group from next object at current location
+        Instantiate(groups[next.indexToSpawn], transform);
+        next.GetNextGroup();
     }
 }

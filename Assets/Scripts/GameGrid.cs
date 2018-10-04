@@ -8,6 +8,11 @@ public class GameGrid : MonoBehaviour
     public static int height = 20;
     public static Transform[,] grid = new Transform[width, height];
 
+    void Awake()
+    {
+        scoreKeeper = FindObjectOfType<Score>();
+    }
+
     public static Vector2 RoundVector2(Vector2 vector)
     {
         return new Vector2(Mathf.Round(vector.x), Mathf.Round(vector.y));
