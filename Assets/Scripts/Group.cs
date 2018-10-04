@@ -5,10 +5,14 @@ public class Group : MonoBehaviour
 {
     float lastFall = 0;     // time since last gravity tick
     Spawner spawner;
+    GameManager gameManager;
+    Score score;
 
     void Awake()
     {
         spawner = FindObjectOfType<Spawner>();
+        gameManager = FindObjectOfType<GameManager>();
+        score = FindObjectOfType<Score>();
     }
 
     void Start()
@@ -93,21 +97,22 @@ public class Group : MonoBehaviour
                 UpdateGrid();
             }
         }
-        // Fall
-        else if (Input.GetKeyDown(KeyCode.DownArrow) || Time.time - lastFall >= 1)
+        // Soft Drop
+        else if (Input.GetKeyDown(KeyCode.DownArrow))
         {
             transform.position += new Vector3(0, -1, 0);
 
             if (IsValidGridPosition())
             {
                 UpdateGrid();
+                score.AddScore(1);
             }
             else
             {
                 transform.position += new Vector3(0, 1, 0);
 
                 // Clear filled rows
-                GameGrid.DeleteFullRows();
+                gameManager.DeleteFullRows();
 
                 // Spawn next group
                 spawner.SpawnNext();
@@ -123,21 +128,46 @@ public class Group : MonoBehaviour
         {
             HardFall();
         }
+        // Fall
+        else if (Input.GetKeyDown(KeyCode.DownArrow) || Time.time - lastFall >= 1)
+        {
+            transform.position += new Vector3(0, -1, 0);
+
+            if (IsValidGridPosition())
+            {
+                UpdateGrid();
+            }
+            else
+            {
+                transform.position += new Vector3(0, 1, 0);
+
+                // Clear filled rows
+                gameManager.DeleteFullRows();
+
+                // Spawn next group
+                spawner.SpawnNext();
+
+                // Disable script
+                enabled = false;
+            }
+
+            lastFall = Time.time;
+        }
     }
 
     bool IsValidGridPosition()
     {
         foreach (Transform child in transform)
         {
-            Vector2 roundedVector = GameGrid.RoundVector2(child.position);
+            Vector2 roundedVector = gameManager.RoundVector2(child.position);
 
             // Not inside border?
-            if (!GameGrid.InsideBorders(roundedVector))
+            if (!gameManager.InsideBorders(roundedVector))
                 return false;
 
             // Block in grid cell (and not part of same group)?
-            if (GameGrid.grid[(int)roundedVector.x, (int)roundedVector.y] != null &&
-                GameGrid.grid[(int)roundedVector.x, (int)roundedVector.y].parent != transform)
+            if (gameManager.grid[(int)roundedVector.x, (int)roundedVector.y] != null &&
+                gameManager.grid[(int)roundedVector.x, (int)roundedVector.y].parent != transform)
                 return false;
         }
 
@@ -147,14 +177,14 @@ public class Group : MonoBehaviour
     void UpdateGrid()
     {
         // Remove old children from grid
-        for (int y = 0; y < GameGrid.height; y++)
+        for (int y = 0; y < GameManager.HEIGHT; y++)
         {
-            for (int x = 0; x < GameGrid.width; x++)
+            for (int x = 0; x < GameManager.WIDTH; x++)
             {
-                if (GameGrid.grid[x, y] != null)
+                if (gameManager.grid[x, y] != null)
                 {
-                    if (GameGrid.grid[x, y].parent == transform)
-                        GameGrid.grid[x, y] = null;
+                    if (gameManager.grid[x, y].parent == transform)
+                        gameManager.grid[x, y] = null;
                 }
             }
         }
@@ -162,21 +192,26 @@ public class Group : MonoBehaviour
         // Add new children to grid
         foreach (Transform child in transform)
         {
-            Vector2 roundedVector = GameGrid.RoundVector2(child.position);
-            GameGrid.grid[(int)roundedVector.x, (int)roundedVector.y] = child;
+            Vector2 roundedVector = gameManager.RoundVector2(child.position);
+            gameManager.grid[(int)roundedVector.x, (int)roundedVector.y] = child;
         }
     }
 
     void HardFall()
     {
+        int distance = 0;
         while (IsValidGridPosition())
         {
             UpdateGrid();
             transform.position += new Vector3(0, -1f, 0);
+            distance++;
         }
 
         transform.position += new Vector3(0, 1f, 0);
-        GameGrid.DeleteFullRows();
+        distance--;
+        score.AddScore(2 * distance);
+
+        gameManager.DeleteFullRows();
         spawner.SpawnNext();
         enabled = false;
         lastFall = Time.time;

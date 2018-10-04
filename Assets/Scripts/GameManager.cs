@@ -1,40 +1,43 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-public class GameGrid : MonoBehaviour
+public class GameManager : MonoBehaviour
 {
     // The Grid itself
-    public static int width = 10;
-    public static int height = 20;
-    public static Transform[,] grid = new Transform[width, height];
+    public static int WIDTH = 10;
+    public static int HEIGHT = 20;
+
+    public Transform[,] grid = new Transform[WIDTH, HEIGHT];
+    
+    Score score;
 
     void Awake()
     {
-        scoreKeeper = FindObjectOfType<Score>();
+        score = FindObjectOfType<Score>();
     }
 
-    public static Vector2 RoundVector2(Vector2 vector)
+    public Vector2 RoundVector2(Vector2 vector)
     {
         return new Vector2(Mathf.Round(vector.x), Mathf.Round(vector.y));
     }
 
-    public static bool InsideBorders(Vector2 pos)
+    public bool InsideBorders(Vector2 pos)
     {
-        return ((int)pos.x >= 0 && (int)pos.x < width && (int)pos.y >= 0);
+        return ((int)pos.x >= 0 && (int)pos.x < WIDTH && (int)pos.y >= 0);
     }
 
-    public static void DeleteRow(int y)
+    public void DeleteRow(int y)
     {
-        for (int x = 0; x < width; x++)
+        for (int x = 0; x < WIDTH; x++)
         {
             Destroy(grid[x, y].gameObject);
             grid[x, y] = null;
         }
     }
 
-    public static void DecreaseRow(int y)
+    public void DecreaseRow(int y)
     {
-        for (int x = 0; x < width; x++)
+        for (int x = 0; x < WIDTH; x++)
         {
             if (grid[x, y] != null)
             {
@@ -48,18 +51,18 @@ public class GameGrid : MonoBehaviour
         }
     }
 
-    public static void DecreaseRowsAbove(int y)
+    public void DecreaseRowsAbove(int y)
     {
         // Decrease rows above the specified row y
-        for (int i = y + 1; i < height; i++)
+        for (int i = y + 1; i < HEIGHT; i++)
         {
             DecreaseRow(i);
         }
     }
 
-    public static bool IsRowFull(int y)
+    public bool IsRowFull(int y)
     {
-        for (int x = 0; x < width; x++)
+        for (int x = 0; x < WIDTH; x++)
         {
             if (grid[x, y] == null)
                 return false;
@@ -67,16 +70,22 @@ public class GameGrid : MonoBehaviour
         return true;
     }
 
-    public static void DeleteFullRows()
+    public void DeleteFullRows()
     {
-        for (int y = 0; y < height; y++)
+        int fullRows = 0;
+        for (int y = 0; y < HEIGHT; y++)
         {
             if (IsRowFull(y))
             {
+                fullRows++;
                 DeleteRow(y);
                 DecreaseRowsAbove(y);
                 y--;
             }
         }
+
+        if (fullRows == 1) { score.AddScore(100); }
+        else if (fullRows == 2) { score.AddScore(300); }
+        else if (fullRows >= 3) { score.AddScore(500); }
     }
 }
